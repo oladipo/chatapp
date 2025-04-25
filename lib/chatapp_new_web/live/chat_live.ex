@@ -9,8 +9,11 @@ defmodule ChatappNewWeb.ChatLive do
   @impl true
   def mount(_params, session, socket) do
     if connected?(socket), do: Phoenix.PubSub.subscribe(ChatappNew.PubSub, "chat:lobby")
-    user = Pow.Plug.current_user(Pow.Plug.Conn.assign_current_user(%Plug.Conn{private: %{pow_session: session}}, nil, otp_app: :chatapp_new))
-    channels = Chat.list_channels()
+    user = case session["pow_user"] do
+      nil -> nil
+      user_id -> ChatappNew.Repo.get(ChatappNew.Users.User, user_id)
+    end
+    channels = Chat.list_channel()
     messages = Chat.list_messages()
     {:ok,
      assign(socket,
